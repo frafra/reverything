@@ -21,13 +21,9 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 ### [1] This version doesn't work, it only do a preview, but don't rename
-### [2] Dirty hacks here, I should clean up the code
-from sys import argv, exit
-from sys import path as ppath
-from os import getcwd, path
+import os, sys
 from reverything import Reverything
-ppath.append(path.join(getcwd(), 'gui'))
-from qt4 import *
+from gui.qt4 import * 
 
 class MainWindow(QtGui.QMainWindow, Ui_MainWindow, Reverything):
     def __init__(self):
@@ -36,10 +32,21 @@ class MainWindow(QtGui.QMainWindow, Ui_MainWindow, Reverything):
         self.setupUi(self)
         self.lineEdit.setText(self.directory)
         
-        QtCore.QObject.connect(self.lineEdit_2,
-            QtCore.SIGNAL("textEdited(QString)"),self.on_lineEdit_2_textEdited)
-        QtCore.QObject.connect(self.lineEdit_3,
-            QtCore.SIGNAL("textEdited(QString)"),self.on_lineEdit_3_textEdited)
+        self.connect(self.lineEdit,
+            QtCore.SIGNAL("textEdited(QString)"), self.on_lineEdit_textEdited)
+        self.connect(self.lineEdit_2,
+            QtCore.SIGNAL("textEdited(QString)"), self.on_lineEdit_2_textEdited)
+        self.connect(self.lineEdit_3,
+            QtCore.SIGNAL("textEdited(QString)"), self.on_lineEdit_3_textEdited)
+        
+        self.connect(self.pushButton, QtCore.SIGNAL("clicked()"), self.clear)
+        self.connect(self.pushButton_2, QtCore.SIGNAL("clicked()"), self.rename)
+        
+        self.refresh()
+
+    def on_lineEdit_textEdited(self):
+        self.directory = str(self.lineEdit.text())
+        self.refresh()
     
     def on_lineEdit_2_textEdited(self):
         self.regex = str(self.lineEdit_2.text())
@@ -49,29 +56,49 @@ class MainWindow(QtGui.QMainWindow, Ui_MainWindow, Reverything):
         self.name = str(self.lineEdit_3.text())
         self.refresh()
     
+    def clear(self):
+        self.lineEdit_2.setText('')
+        self.lineEdit_3.setText('')
+        self.refresh()
+        
+    def rename(self):
+        self.rn()
+        self.refresh()
+    
     def refresh(self):
         try:
-            items = self.ls()
+            self.ls()
         except:
             return
         self.tableWidget.clear()
-        self.tableWidget.setRowCount(len(items))
-        for n, item in enumerate(items):
-            headerItem = QtGui.QTableWidgetItem()
-            headerItem.setText(str(n))
-            self.tableWidget.setVerticalHeaderItem(n, headerItem)
+        self.tableWidget.setRowCount(len(self.items))
+        
+        ### [2] Dirty fix to block strange renaming of columns
+        headerItem = QtGui.QTableWidgetItem()
+        headerItem.setText(QtGui.QApplication.translate("MainWindow", "Old name", None, QtGui.QApplication.UnicodeUTF8))
+        self.tableWidget.setHorizontalHeaderItem(0,headerItem)
+        headerItem1 = QtGui.QTableWidgetItem()
+        headerItem1.setText(QtGui.QApplication.translate("MainWindow", "New name", None, QtGui.QApplication.UnicodeUTF8))
+        self.tableWidget.setHorizontalHeaderItem(1,headerItem1)
+        
+        for n, item in enumerate(self.items):
+            ### [3] QT4 do this automatically...
+            ###     How to remove this pseudo-column?
+            #headerItem = QtGui.QTableWidgetItem()
+            #headerItem.setText(str(n))
+            #self.tableWidget.setVerticalHeaderItem(n, headerItem)
             
-            item1 = QtGui.QTableWidgetItem()
-            item1.setText(item)
-            self.tableWidget.setItem(n,0,item1)
+            item_tmp = QtGui.QTableWidgetItem()
+            item_tmp.setText(item)
+            self.tableWidget.setItem(n, 0, item_tmp)
             
-            item2 = QtGui.QTableWidgetItem()
-            item2.setText(items[item])
-            self.tableWidget.setItem(n,1,item2)
+            item_tmp = QtGui.QTableWidgetItem()
+            item_tmp.setText(self.items[item])
+            self.tableWidget.setItem(n, 1, item_tmp)
 
 if __name__ == "__main__":
-    app = QtGui.QApplication(argv)
+    app = QtGui.QApplication(sys.argv)
     ui = MainWindow()
     ui.show()
-    exit(app.exec_())
+    sys.exit(app.exec_())
 

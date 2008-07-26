@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'qt4.ui'
 #
-# Created: Sat Jul 26 14:49:44 2008
+# Created: Sat Jul 26 19:54:00 2008
 #      by: PyQt4 UI code generator 4.3.3
 #
 # WARNING! All changes made in this file will be lost!
@@ -12,7 +12,7 @@ from PyQt4 import QtCore, QtGui
 class Ui_MainWindow(object):
     def setupUi(self, MainWindow):
         MainWindow.setObjectName("MainWindow")
-        MainWindow.resize(QtCore.QSize(QtCore.QRect(0,0,396,396).size()).expandedTo(MainWindow.minimumSizeHint()))
+        MainWindow.resize(QtCore.QSize(QtCore.QRect(0,0,423,412).size()).expandedTo(MainWindow.minimumSizeHint()))
 
         self.centralwidget = QtGui.QWidget(MainWindow)
         self.centralwidget.setObjectName("centralwidget")
@@ -49,6 +49,8 @@ class Ui_MainWindow(object):
         self.gridlayout.addWidget(self.label_4,3,0,1,1)
 
         self.tableWidget = QtGui.QTableWidget(self.centralwidget)
+        self.tableWidget.setAlternatingRowColors(True)
+        self.tableWidget.setSortingEnabled(True)
         self.tableWidget.setObjectName("tableWidget")
         self.gridlayout.addWidget(self.tableWidget,3,1,1,1)
 
@@ -65,11 +67,11 @@ class Ui_MainWindow(object):
         self.pushButton_2 = QtGui.QPushButton(self.centralwidget)
         self.pushButton_2.setObjectName("pushButton_2")
         self.gridlayout1.addWidget(self.pushButton_2,0,2,1,1)
-        self.gridlayout.addLayout(self.gridlayout1,4,1,1,1)
+        self.gridlayout.addLayout(self.gridlayout1,4,0,1,2)
         MainWindow.setCentralWidget(self.centralwidget)
 
         self.menubar = QtGui.QMenuBar(MainWindow)
-        self.menubar.setGeometry(QtCore.QRect(0,0,396,27))
+        self.menubar.setGeometry(QtCore.QRect(0,0,423,27))
         self.menubar.setObjectName("menubar")
 
         self.menuFile = QtGui.QMenu(self.menubar)
