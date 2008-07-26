@@ -18,43 +18,47 @@
 #    You should have received a copy of the GNU General Public License
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-from os import getcwd, listdir, rename
+from os import getcwd, listdir, path, rename
 from re import search
 from sys import argv
 
+# Syntax like: '%(0)s' % {'0':res.group(0)}
+
+class Reverything:
+    def __init__(self, regex, name, directory=getcwd()):
+        self.regex = regex
+        self.name = name
+        self.directory = directory
+    def ls(self):
+        items = {}
+        for item in listdir(self.directory):
+            re = search(self.regex, item)
+            if not re: continue
+            res = re.groups()
+            replace = dict(zip([str(n) for n in xrange(len(res))], res))
+            items[item] = self.name % replace
+        return items
+    def rename(self, items):
+        for item in items:
+            rename(path.join(self.directory, item),
+                   path.join(self.directory, items[item]))
+
 def main():
     if len(argv) not in (3, 4):
-        print 'Usage: %s <filter> <name> [working directory]' % argv[0]
+        print 'Usage: %s <filter> <name> [directory]' % argv[0]
         raise SystemExit
-
-    regex = argv[1]
-    name = argv[2]
-    if len(argv) == 4:
-        workingdir = argv[3]
-    else:
-        workingdir = getcwd()
-
-    items = {}
-    for item in listdir(workingdir):
-        res = search(regex, item)
-        if res:
-            # Syntax like: '%(0)s' % {'0':res.group(0)}
-            groups = res.groups()
-            replace = dict(zip([str(n) for n in xrange(len(groups))], groups))
-            items[item] = name % replace
-
+    
+    rename = Reverything(*argv[1:])
+    items = rename.ls()
     if len(items) > 0:
-        print 'Preview:'
+        print 'Preview (into %s):' % rename.directory
         for item in items:
             print '  %s -> %s' % (item, items[item])
     else:
         print 'Nothing to rename.'
         raise SystemExit
     
-    if raw_input('Rename? [y/n] ').lower() != 'y': raise SystemExit
-
-    for item in items:
-        rename(item, items[item])
+    if raw_input('Rename? [y/n] ').lower() == 'y': rename.rename(items)
 
 if __name__ == "__main__":
     main()
