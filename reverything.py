@@ -22,24 +22,33 @@ from os import getcwd, listdir, rename
 from re import search
 from sys import argv
 
-print 'Usage: %s <filter> <name>' % argv[0]
+def main():
+    if len(argv) not in (3, 4):
+        print 'Usage: %s <filter> <name> [working directory]' % argv[0]
+        raise SystemExit
 
-regex = argv[1]
-name = argv[2]
+    regex = argv[1]
+    name = argv[2]
+    if len(argv) == 4:
+        workingdir = argv[3]
+    else:
+        workingdir = getcwd()
 
-items = {}
+    items = {}
+    for item in listdir(workingdir):
+        res = search(regex, item)
+        if res:
+            # Syntax like: '%(0)s' % {'0':res.group(0)}
+            groups = res.groups()
+            replace = dict(zip([str(n) for n in xrange(len(groups))], groups))
+            items[item] = name % replace
 
-for item in listdir(getcwd()):
-    res = search(regex, item)
-    if res:
-        # Syntax like: '%(0)s' % {'0':res.group(0)}
-        groups = res.groups()
-        replace = dict(zip([str(n) for n in xrange(len(groups))], groups))
-        items[item] = name % replace
+    print items
+    if raw_input('Rename? [y/n] ') != 'y': raise SystemExit
 
-print items
-if raw_input('Ok? [y/n] ') != 'y': raise SystemExit
+    for item in items:
+        rename(item, items[item])
 
-for item in items:
-    rename(item, items[item])
+if __name__ == "__main__":
+    main()
 
