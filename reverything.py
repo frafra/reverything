@@ -43,8 +43,15 @@ def main():
             replace = dict(zip([str(n) for n in xrange(len(groups))], groups))
             items[item] = name % replace
 
-    print items
-    if raw_input('Rename? [y/n] ') != 'y': raise SystemExit
+    if len(items) > 0:
+        print 'Preview:'
+        for item in items:
+            print '  %s -> %s' % (item, items[item])
+    else:
+        print 'Nothing to rename.'
+        raise SystemExit
+    
+    if raw_input('Rename? [y/n] ').lower() != 'y': raise SystemExit
 
     for item in items:
         rename(item, items[item])
