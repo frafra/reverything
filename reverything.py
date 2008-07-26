@@ -5,6 +5,8 @@
 #
 # Copyright 2008 Francesco Frassinelli <fraph24@gmail.com>
 # 
+#    This file is part of Reverything.
+#    
 #    This program is free software: you can redistribute it and/or modify
 #    it under the terms of the GNU General Public License as published by
 #    the Free Software Foundation, either version 3 of the License, or
@@ -50,7 +52,7 @@ def main():
     
     rename = Reverything(*argv[1:])
     items = rename.ls()
-    if len(items) > 0:
+    if len(items):
         print 'Preview (into %s):' % rename.directory
         for item in items:
             print '  %s -> %s' % (item, items[item])
