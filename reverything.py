@@ -22,7 +22,7 @@
 
 ''' Rename multiple files and/or directories using 2 regex
     Syntax example: 'dsc(\d+)' -> 'photo-%(1)s' % {'1':res.group(0)}
-    See also: http://docs.python.org/lib/re-syntax.html'''
+    See also: http://docs.python.org/lib/re-syntax.html '''
 
 import os, re, sys
 
@@ -33,7 +33,7 @@ class Reverything:
         self.dirs = dirs
         self.map = {}
     def preview(self):
-        ''' Get a map with current names and new names over directories '''
+        ''' Give a map with current names and new names over directories '''
         # How to store data: {directory1:{file1:new1, file2:new2}}
         self.map = {}
         for folder in self.dirs:
@@ -42,11 +42,9 @@ class Reverything:
                 res = re.search(self.regex_in, item)
                 if not res:
                     continue
-                res = res.groups()
-                replace = dict((str(e+1), i) for e, i in enumerate(res))
-                tmp[item] = self.regex_out % replace
-            if tmp:
-                self.map[folder] = tmp
+                rep = dict((str(e+1), i) for e, i in enumerate(res.groups()))
+                tmp[item] = self.regex_out % rep
+            self.map[folder] = tmp
     def apply(self):
         ''' Rename everything '''
         for folder in self.map:
@@ -65,15 +63,17 @@ def main():
         dirs = sys.argv[3:]
     rename = Reverything(sys.argv[1], sys.argv[2], dirs)
     rename.preview()
-    if rename.map:
-        for folder in rename.map:
-            print 'Preview (into %s):' % folder
-            for item in rename.map[folder]:
-                print '    %s -> %s' % (item, rename.map[folder][item])
-        if raw_input('Rename? [y/n] ').lower() == 'y':
-            rename.apply()
-    else:
+    for folder in rename.map:
+        if not len(rename.map[folder]):
+            continue
+        print 'Preview (into %s):' % folder
+        for item in rename.map[folder]:
+            print '    %s -> %s' % (item, rename.map[folder][item])
+    if not any(rename.map.values()):
         print 'Nothing to rename.'
+        sys.exit(0)
+    if raw_input('Rename? [y/N] ').lower() == 'y':
+        rename.apply()
 
 if __name__ == '__main__':
     main()
