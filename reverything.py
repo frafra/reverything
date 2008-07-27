@@ -20,35 +20,39 @@
 #    You should have received a copy of the GNU General Public License
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-import os, re, sys
+''' Rename multiple files and/or directories using 2 regex
+    Syntax example: 'dsc(\d+)' -> 'photo-%(1)s' % {'1':res.group(0)}
+    See also: http://docs.python.org/lib/re-syntax.html'''
 
-# Syntax example: 'dsc(\d+)' -> 'photo-%(1)s' % {'1':res.group(0)}
-# See also: http://docs.python.org/lib/re-syntax.html
+import os, re, sys
 
 class Reverything:
     ''' Rename multiple files and/or directories using 2 regex '''
     def __init__(self, regex_in, regex_out, dirs):
         self.regex_in, self.regex_out = regex_in, regex_out
         self.dirs = dirs
+        self.map = {}
     def preview(self):
-        ''' See what files match with the given regex and memorize new names '''
-        self.items = {}
-        for d in self.dirs:
-            # Calls re.search(self.regex_in, i), we should optimize it
-            old = [i for i in os.listdir(d) if re.search(self.regex_in, i)]
-            new = []
-            for item in old:
-                res = re.search(self.regex_in, item).groups()
-                replace = dict(zip([str(n+1) for n in xrange(len(res))], res))
-                new.append(self.regex_out % replace)
-            self.items[d] = dict(zip(old, new))
-        # We need to implement a cleanup action for empty results
+        ''' Get a map with current names and new names over directories '''
+        # How to store data: {directory1:{file1:new1, file2:new2}}
+        self.map = {}
+        for folder in self.dirs:
+            tmp = {}
+            for item in os.listdir(folder):
+                res = re.search(self.regex_in, item)
+                if not res:
+                    continue
+                res = res.groups()
+                replace = dict((str(e+1), i) for e, i in enumerate(res))
+                tmp[item] = self.regex_out % replace
+            if tmp:
+                self.map[folder] = tmp
     def apply(self):
         ''' Rename everything '''
-        for d in self.items:
-            for item in self.items[d]:
-                os.rename(os.path.join(d, item),
-                          os.path.join(d, self.items[d][item]))
+        for folder in self.map:
+            for item in self.map[folder]:
+                os.rename(os.path.join(folder, item),
+                          os.path.join(folder, self.map[folder][item]))
 
 def main():
     ''' Example code for use Reverything class '''
@@ -61,13 +65,15 @@ def main():
         dirs = sys.argv[3:]
     rename = Reverything(sys.argv[1], sys.argv[2], dirs)
     rename.preview()
-    for d in rename.items:
-        print 'Preview (into %s):' % d
-        for item in rename.items[d]:
-            print '    %s -> %s' % (item, rename.items[d][item])
-    
-    if raw_input('Rename? [y/n] ').lower() == 'y':
-        rename.apply()
+    if rename.map:
+        for folder in rename.map:
+            print 'Preview (into %s):' % folder
+            for item in rename.map[folder]:
+                print '    %s -> %s' % (item, rename.map[folder][item])
+        if raw_input('Rename? [y/n] ').lower() == 'y':
+            rename.apply()
+    else:
+        print 'Nothing to rename.'
 
 if __name__ == '__main__':
     main()
