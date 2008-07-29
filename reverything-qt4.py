@@ -20,7 +20,6 @@
 #    You should have received a copy of the GNU General Public License
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-### [1] This version doesn't work, it only do a preview, but don't rename
 import os, sys
 from reverything import Reverything
 from gui.qt4 import * 
@@ -28,9 +27,9 @@ from gui.qt4 import *
 class MainWindow(QtGui.QMainWindow, Ui_MainWindow, Reverything):
     def __init__(self):
         QtGui.QMainWindow.__init__(self)
-        Reverything.__init__(self, '', '')
+        Reverything.__init__(self, '', '', [os.getcwd()])
         self.setupUi(self)
-        self.lineEdit.setText(self.directory)
+        self.lineEdit.setText(self.dirs[0])
         
         self.connect(self.lineEdit,
             QtCore.SIGNAL("textEdited(QString)"), self.on_lineEdit_textEdited)
@@ -39,62 +38,47 @@ class MainWindow(QtGui.QMainWindow, Ui_MainWindow, Reverything):
         self.connect(self.lineEdit_3,
             QtCore.SIGNAL("textEdited(QString)"), self.on_lineEdit_3_textEdited)
         
-        self.connect(self.pushButton, QtCore.SIGNAL("clicked()"), self.clear)
+        self.connect(self.pushButton, QtCore.SIGNAL("clicked()"), self.refresh)
         self.connect(self.pushButton_2, QtCore.SIGNAL("clicked()"), self.rename)
         
         self.refresh()
 
     def on_lineEdit_textEdited(self):
-        self.directory = str(self.lineEdit.text())
-        self.refresh()
-    
+        changed = str(self.lineEdit.text())
+        if os.path.isdir(changed):
+            self.dirs = [changed]
+            self.refresh()
+
     def on_lineEdit_2_textEdited(self):
-        self.regex = str(self.lineEdit_2.text())
+        self.regex_in = str(self.lineEdit_2.text())
         self.refresh()
     
     def on_lineEdit_3_textEdited(self):
-        self.name = str(self.lineEdit_3.text())
-        self.refresh()
-    
-    def clear(self):
-        self.lineEdit_2.setText('')
-        self.lineEdit_3.setText('')
+        self.regex_out = str(self.lineEdit_3.text())
         self.refresh()
         
     def rename(self):
-        self.rn()
+        self.apply()
         self.refresh()
     
     def refresh(self):
-        try:
-            self.ls()
-        except:
-            return
-        self.tableWidget.clear()
-        self.tableWidget.setRowCount(len(self.items))
-        
-        ### [2] Dirty fix to block strange renaming of columns
-        headerItem = QtGui.QTableWidgetItem()
-        headerItem.setText(QtGui.QApplication.translate("MainWindow", "Old name", None, QtGui.QApplication.UnicodeUTF8))
-        self.tableWidget.setHorizontalHeaderItem(0,headerItem)
-        headerItem1 = QtGui.QTableWidgetItem()
-        headerItem1.setText(QtGui.QApplication.translate("MainWindow", "New name", None, QtGui.QApplication.UnicodeUTF8))
-        self.tableWidget.setHorizontalHeaderItem(1,headerItem1)
-        
-        for n, item in enumerate(self.items):
-            ### [3] QT4 do this automatically...
-            ###     How to remove this pseudo-column?
-            #headerItem = QtGui.QTableWidgetItem()
-            #headerItem.setText(str(n))
-            #self.tableWidget.setVerticalHeaderItem(n, headerItem)
-            
-            item_tmp = QtGui.QTableWidgetItem()
-            item_tmp.setText(item)
-            self.tableWidget.setItem(n, 0, item_tmp)
-            
-            item_tmp = QtGui.QTableWidgetItem()
-            item_tmp.setText(self.items[item])
-            self.tableWidget.setItem(n, 1, item_tmp)
+        self.preview()
+        model = QtGui.QStandardItemModel(self)
+        item = QtCore.QStringList()
+        item.insert(0, 'Old name')
+        item.insert(1, 'New name')
+        model.setHorizontalHeaderLabels(item)
+        parentItem = model.invisibleRootItem()
+        for folder in self.map:
+            item = QtGui.QStandardItem(QtCore.QString(folder))
+            item2 = QtGui.QStandardItem(QtCore.QString(folder))
+            parentItem.appendRow([item, item2])
+            parentItem = item
+            for obj in self.map[folder]:
+                item = QtGui.QStandardItem(QtCore.QString(obj))
+                item2 = QtGui.QStandardItem(QtCore.QString(self.map[folder][obj]))
+                parentItem.appendRow([item, item2])
+        self.treeView.setModel(model)  
 
 if __name__ == "__main__":
     app = QtGui.QApplication(sys.argv)
