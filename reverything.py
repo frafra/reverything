@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 # -*- utf-8 -*-
 #
 # reverything.py
@@ -55,7 +55,7 @@ class Reverything:
 def main():
     ''' Example code for use Reverything class '''
     if len(sys.argv) < 3:
-        print 'Usage: %s <filter> <name> [directories]' % sys.argv[0]
+        print('Usage: %s <filter> <name> [directories]' % sys.argv[0])
         sys.exit(0)
     if len(sys.argv) < 4:
         dirs = [os.getcwd()]
@@ -66,13 +66,13 @@ def main():
     for folder in rename.map:
         if not len(rename.map[folder]):
             continue
-        print 'Preview (into %s):' % folder
+        print('Preview (into %s):' % folder)
         for item in rename.map[folder]:
-            print '    %s -> %s' % (item, rename.map[folder][item])
+            print('    %s -> %s' % (item, rename.map[folder][item]))
     if not any(rename.map.values()):
-        print 'Nothing to rename.'
+        print('Nothing to rename.')
         sys.exit(0)
-    if raw_input('Rename? [y/N] ').lower() == 'y':
+    if input('Rename? [y/N] ').lower() == 'y':
         rename.apply()
 
 if __name__ == '__main__':
